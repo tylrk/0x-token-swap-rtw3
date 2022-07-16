@@ -1,5 +1,8 @@
+const qs = require('qs');
+
 let currentTrade = {};
 let currentSelectSide;
+let tokens;
 
 async function init() {
     await listAvailableTokens();
@@ -48,7 +51,7 @@ function renderInterface() {
 }
 
 async function connect() {
-    if (typeof window.ethereum !== undefined) {
+    if (typeof window.ethereum !== "undefined") {
         try {
             console.log("Connecting");
             await ethereum.request({ method: "eth_requestAccounts" });
@@ -61,6 +64,63 @@ async function connect() {
         document.getElementById("login_button").innerHTML = 
             "Please install Metamask";
     }
+}
+
+async function getPrice() {
+    console.log("Getting Price");
+
+    if(!currentTrade.from || !currentTrade.to || !document.getElementById("from_amount").value) return;
+    let amount = Number(document.getElementById("from_amount").value * 10 ** currentTrade.from.decimals);
+
+    const params = {
+        sellToken: currentTrade.from.address,
+        buyToken: currentTrade.to.address,
+        sellAmount: amount,
+    }
+
+    // Fetch the swap price
+    const response = await fetch(`https://api.0x.org/swap/v1/price?${qs.stringify(params)}`);
+
+    swapPriceJSON = await response.json();
+    console.log("Price: ", swapPriceJSON);
+
+    document.getElementById("to_amount").value = swapPriceJSON.buyAmount / (10 ** currentTrade.to.decimals);
+    document.getElementById("gas_estimate").innerHTML = swapPriceJSON.estimatedGas;
+}
+
+async function getQuote(account) {
+    console.log("Getting Quote");
+
+    if(!currentTrade.from || !currentTrade.to || !document.getElementById("from_amount").value) return;
+    let amount = Number(document.getElementById("from_amount").value * 10 ** currentTrade.from.decimals);
+
+    const params = {
+        sellToken: currentTrade.from.address,
+        buyToken: currentTrade.to.address,
+        sellAmount: amount,
+        takerAddress: account,
+    }
+
+    // Fetch the swap price
+    const response = await fetch(`https://api.0x.org/swap/v1/quote?${qs.stringify(params)}`);
+
+    swapQuoteJSON = await response.json();
+    console.log("Quote: ", swapQuoteJSON);
+
+    document.getElementById("to_amount").value = swapQuoteJSON.buyAmount / (10 ** currentTrade.to.decimals);
+    document.getElementById("gas_estimate").innerHTML = swapQuoteJSON.estimatedGas;
+
+    return swapQuoteJSON;
+}
+
+async function trySwap() {
+
+    let accounts = await ethereum.request({ method: "eth_accounts" });
+    let takerAddress = accounts[0];
+
+    console.log("takerAddress:", takerAddress);
+
+    const swapQuoteJSON = await getQuote(takerAddress);
 }
 
 init();
@@ -82,4 +142,5 @@ document.getElementById("to_token_select").onclick = () => {
     openModal("to");
 };
 document.getElementById("modal_close").onclick = closeModal;
+document.getElementById("from_amount").onblur = getPrice;
 
