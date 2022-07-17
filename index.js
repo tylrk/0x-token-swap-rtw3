@@ -1,6 +1,6 @@
 const qs = require('qs');
-const web3 = require('web3');
-const BigNumber = require('bignumber.js');
+const Web3 = require('web3');
+const { default: BigNumber } = require('bignumber.js');
 
 let currentTrade = {};
 let currentSelectSide;
@@ -12,7 +12,7 @@ async function init() {
 
 async function listAvailableTokens() {
     console.log("initializing");
-    let response = await fetch('https://tokens.coingecko.com/uniswap/all.json');
+    let response = await fetch('https://tokens.coingecko.com/polygon-pos/all.json');
     let tokenListJSON = await response.json();
     console.log("Listing available tokens: ", tokenListJSON);
     tokens = tokenListJSON.tokens;
@@ -81,7 +81,7 @@ async function getPrice() {
     }
 
     // Fetch the swap price
-    const response = await fetch(`https://api.0x.org/swap/v1/price?${qs.stringify(params)}`);
+    const response = await fetch(`https://polygon.api.0x.org/swap/v1/price?${qs.stringify(params)}`);
 
     swapPriceJSON = await response.json();
     console.log("Price: ", swapPriceJSON);
@@ -101,15 +101,15 @@ async function getQuote(account) {
         buyToken: currentTrade.to.address,
         sellAmount: amount,
         takerAddress: account,
-    } 
+    }; 
 
     // Fetch the swap price
-    const response = await fetch(`https://api.0x.org/swap/v1/quote?${qs.stringify(params)}`);
+    const response = await fetch(`https://polygon.api.0x.org/swap/v1/quote?${qs.stringify(params)}`);
 
     swapQuoteJSON = await response.json();
     console.log("Quote: ", swapQuoteJSON);
 
-    document.getElementById("to_amount").value = swapQuoteJSON.buyAmount / (10 ** currentTrade.to.decimals);
+    document.getElementById("to_amount").value = swapQuoteJSON.price;
     document.getElementById("gas_estimate").innerHTML = swapQuoteJSON.estimatedGas;
 
     return swapQuoteJSON;
@@ -135,12 +135,10 @@ async function trySwap() {
     console.log("setup ERC20TokenContract: ", ERC20TokenContract);
 
     const maxApproval = new BigNumber(2).pow(256).minus(1);
-    ERC20TokenContract.methods.approve(
-        swapQuoteJSON.allowanceTarget,
-        maxApproval,
-        )
-        .send({from: takerAddress})
-        .then(tx => {
+    const tx = await ERC20TokenContract.methods
+        .approve(swapQuoteJSON.allowanceTarget, maxApproval)
+        .send({ from: takerAddress })
+        .then((tx) => {
             console.log("tx: ", tx)
         });
 
