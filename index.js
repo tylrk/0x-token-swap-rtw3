@@ -12,7 +12,7 @@ async function init() {
 
 async function listAvailableTokens() {
     console.log("initializing");
-    let response = await fetch('https://tokens.coingecko.com/polygon-pos/all.json');
+    let response = await fetch('https://tokens.coingecko.com/uniswap/all.json');
     let tokenListJSON = await response.json();
     console.log("Listing available tokens: ", tokenListJSON);
     tokens = tokenListJSON.tokens;
@@ -81,7 +81,7 @@ async function getPrice() {
     }
 
     // Fetch the swap price
-    const response = await fetch(`https://polygon.api.0x.org/swap/v1/price?${qs.stringify(params)}`);
+    const response = await fetch(`https://api.0x.org/swap/v1/price?${qs.stringify(params)}`);
 
     swapPriceJSON = await response.json();
     console.log("Price: ", swapPriceJSON);
@@ -104,7 +104,7 @@ async function getQuote(account) {
     }; 
 
     // Fetch the swap price
-    const response = await fetch(`https://polygon.api.0x.org/swap/v1/quote?${qs.stringify(params)}`);
+    const response = await fetch(`https://api.0x.org/swap/v1/quote?${qs.stringify(params)}`);
 
     swapQuoteJSON = await response.json();
     console.log("Quote: ", swapQuoteJSON);
@@ -135,6 +135,8 @@ async function trySwap() {
     console.log("setup ERC20TokenContract: ", ERC20TokenContract);
 
     const maxApproval = new BigNumber(2).pow(256).minus(1);
+    console.log("approval amount: ", maxApproval);
+
     const tx = await ERC20TokenContract.methods
         .approve(swapQuoteJSON.allowanceTarget, maxApproval)
         .send({ from: takerAddress })
