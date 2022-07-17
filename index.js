@@ -101,7 +101,7 @@ async function getQuote(account) {
         buyToken: currentTrade.to.address,
         sellAmount: amount,
         takerAddress: account,
-    }
+    } 
 
     // Fetch the swap price
     const response = await fetch(`https://api.0x.org/swap/v1/quote?${qs.stringify(params)}`);
