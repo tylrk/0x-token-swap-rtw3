@@ -1,5 +1,5 @@
 # Token Swap dApp w/ 0x API
-Completed as part of Alchemy's "Road to Web3", Week 9
+Completed as part of Alchemy's "Road to Web3" - Week 9
 
 ## Overview 
 - Built a token swap dApp
