@@ -5,8 +5,8 @@ This code is for the tutorial "Build a Token Swap Dapp With 0x API"
 
 ## Overview 
 - Building a token swap dApp
-- Using Coin Gecko API & 0x API
+- Utilizing Coin Gecko API & 0x API
 
 ## Languages/Tools Utilized
 - Language(s): JavaScript 
-- Tools: Coin Gecko, 0x
+- Tools: Coin Gecko, 0x, Browserify
